@@ -12,7 +12,6 @@ namespace Vk
         using dict_t = std::map<std::string, std::string>;
         Client(dict_t settings) : settings_(settings) {}
         auto check_connection() -> bool;
-        auto get_friends() -> void;
 
     private:
         dict_t settings_;
