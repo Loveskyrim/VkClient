@@ -28,6 +28,7 @@ matrix:
       env: COMPILER=clang++ -std=c++11
       
 script:
+  -brew install openssl curl
   - mkdir build
   - cd build
   - cmake .. && make
