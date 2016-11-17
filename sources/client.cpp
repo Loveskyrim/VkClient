@@ -23,14 +23,21 @@ namespace Vk
 
             if (curl_easy_perform(curl) == CURLE_OK)
             {
-                json jsn_obj = json::parse(buffer);
-                json jsn_response = jsn_obj["response"];
+		try
+		{
+                    json jsn_obj = json::parse(buffer);
+                    json jsn_response = jsn_obj["response"];
 
-                if (!jsn_response.is_null())
-                {
-                    curl_easy_cleanup(curl);
-                    return true;
-                }
+                    if (!jsn_response.is_null())
+                    {
+                        curl_easy_cleanup(curl);
+                        return true;
+                    }
+		}
+		catch (const std::exception & error)
+		{
+		    std::cout << error.what() << std::endl;
+		} 
             }
         }
 
@@ -55,14 +62,21 @@ namespace Vk
 
             if (curl_easy_perform(curl) == CURLE_OK)
             {
-                json jsn_obj = json::parse(buffer);
-                json jsn_response = jsn_obj["response"];
+		try
+		{
+		    json jsn_obj = json::parse(buffer);
+		    json jsn_response = jsn_obj["response"];
 
-                if (!jsn_response.is_null())
-                {
-                    curl_easy_cleanup(curl);
-                    return jsn_response;
-                }
+		    if (!jsn_response.is_null())
+		    {
+		        curl_easy_cleanup(curl);
+		        return jsn_response;
+		    }
+		}
+		catch (const std::exception & error)
+		{
+		    std::cout << error.what() << std::endl;
+		} 
             }			
 	}
 

@@ -22,7 +22,8 @@ int main()
 
 void get_info(const Vk::Client::json & account)
 {
-
+    try
+    {
         Vk::Client::json jsn_fname = account["first_name"];
         if (!jsn_fname.is_null())
             std::cout << "first name: " << jsn_fname.begin().value() << std::endl;
@@ -42,4 +43,9 @@ void get_info(const Vk::Client::json & account)
 	Vk::Client::json jsn_hometown = account["home_town"];
         if (!jsn_hometown.is_null())
             std::cout << "home town: " << jsn_hometown.begin().value() << std::endl;
+    }
+    catch (const std::exception & error)
+    {
+	std::cout << error.what() << std::endl;
+    }
 }
