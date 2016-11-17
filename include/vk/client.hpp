@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include "json.hpp"
 
 namespace Vk
 {
@@ -10,8 +11,10 @@ namespace Vk
     {
     public:
         using dict_t = std::map<std::string, std::string>;
+	using json = nlohmann::json;
         Client(dict_t settings) : settings_(settings) {}
         auto check_connection() -> bool;
+	auto get_profile_info() -> json;
 
     private:
         dict_t settings_;
