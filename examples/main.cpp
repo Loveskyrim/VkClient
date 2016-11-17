@@ -42,6 +42,4 @@ void get_info(const Vk::Client::json & account)
 	Vk::Client::json jsn_hometown = account["home_town"];
         if (!jsn_hometown.is_null())
             std::cout << "home town: " << jsn_hometown.begin().value() << std::endl;
-
-
 }
