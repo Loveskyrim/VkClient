@@ -15,6 +15,7 @@ namespace Vk
         Client(dict_t settings) : settings_(settings) {}
         auto check_connection() -> bool;
 	auto get_profile_info() -> json;
+	auto get_audios() -> json;
 
     private:
         dict_t settings_;
