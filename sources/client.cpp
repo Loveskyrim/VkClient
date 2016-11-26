@@ -83,15 +83,15 @@ namespace Vk
         return nullptr;	
     }
 
-    auto Client::get_audios() -> json
-    {
-	CURL * curl = curl_easy_init();
+auto Client::get_audios() -> json
+	{
+        CURL * curl = curl_easy_init();
 
         if (curl)
         {
-	    std::string fields = "owner_id=65320203&count=66&access_token=" + settings_["token"] + "&v=5.60";
+            std::string fields = "access_token=" + settings_["token"] + "&v=5.60";
             std::string buffer = "";
-	    curl_easy_setopt(curl, CURLOPT_URL, "https://api.vk.com/method/audio.get?");
+            curl_easy_setopt(curl, CURLOPT_URL, "https://api.vk.com/method/audio.get?");
             curl_easy_setopt(curl, CURLOPT_POST, 1L);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields.c_str());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fields.length());
@@ -100,26 +100,25 @@ namespace Vk
 
             if (curl_easy_perform(curl) == CURLE_OK)
             {
-		try
-		{
-		    json jsn_obj = json::parse(buffer);
-		    json jsn_response = jsn_obj["response"];
+                try
+                {
+                    json jsn_obj = json::parse(buffer);
+                    json jsn_response = jsn_obj["response"];
 
-		    if (!jsn_response.is_null())
-		    {
-			std::cout << jsn_response << std::endl;
-		        curl_easy_cleanup(curl);
-		        return jsn_response["items"];
-		    }
-		}
-		catch (const std::exception & error)
-		{
-		    std::cout << error.what() << std::endl;
-		} 
-            }			
-	}
+                    if (!jsn_response.is_null())
+                    {
+                        curl_easy_cleanup(curl);
+                        return jsn_response["items"];
+                    }
+                }
+                catch (const std::exception & error)
+                {
+                    std::cout << error.what() << std::endl;
+                }
+            }
+        }
 
-	curl_easy_cleanup(curl);
+        curl_easy_cleanup(curl);
         return nullptr;
     }
 

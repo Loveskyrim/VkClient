@@ -1,16 +1,14 @@
 #include <vk/client.hpp>
-#include <iostream>
 #include <thread>
 #include <mutex>
-#include <vector>
-#include <chrono>
 
 std::mutex mutex;
+size_t thread_index = 0;
 
 void get_info(const Vk::Client::json & account);
-void get_audios(const Vk::Client::json & audios, int index, int offset);
+auto print_audios(const Vk::Client::json & audios, size_t threads_count, bool is_debug, size_t current_index) -> void;
 
-int main()
+int main(int argc, char * argv[])
 {
     std::string token;
     std::cout << "Для получения токена пройдите по ссылке:" << std::endl;
@@ -22,26 +20,25 @@ int main()
     if (vk_cl.check_connection())
         std::cout << "Подключено." << std::endl;
 
-    //get_info(vk_cl.get_profile_info());
-
-    /*std::cout <<*/ vk_cl.get_audios();
-
+    get_info(vk_cl.get_profile_info());
 
     size_t n;
     std::cout << "Введите количество одновременно запускаемых потоков: " << std::endl;
     std::cin >> n;
 
     if (n < 1 || n > std::thread::hardware_concurrency())
-	std::cout << "Неверное число потоков" << std::endl;
+	    std::cout << "Неверное число потоков" << std::endl;
     else
     {
-	std::vector<std::thread> threads;
-	for (auto i = 0; i < n; i++)
-	    threads.push_back(std::thread(get_audios, vk_cl.get_audios(), i, n));
+        std::vector<std::thread> threads;
+        auto audios = vk_cl.get_audios();
 
-	for (auto i = 0; i < n; i++)
-	    if (threads[i].joinable())
-		threads[i].join();
+        for (auto i = 0; i < n; i++)
+            threads.push_back(std::thread(print_audios, audios, n, argc == 2 && strcmp(argv[1], "-v") == 0, i));
+
+        for (auto i = 0; i < n; i++)
+            if (threads[i].joinable())
+                threads[i].join();
     }
 
     return 0;
@@ -59,55 +56,63 @@ void get_info(const Vk::Client::json & account)
         if (!jsn_lname.is_null())
             std::cout << "last name: " << jsn_lname.begin().value() << std::endl;
 
-	Vk::Client::json jsn_bdate = account["bdate"];
+        Vk::Client::json jsn_bdate = account["bdate"];
         if (!jsn_bdate.is_null())
             std::cout << "birthday: " << jsn_bdate.begin().value() << std::endl;
 
         Vk::Client::json jsn_sex = account["sex"];
         if (!jsn_sex.is_null())
-            std::cout << "sex: " << ((int)jsn_sex.begin().value() == 1 ? "female" : "male") << std::endl;
+            std::cout << "sex: " << ((int) jsn_sex.begin().value() == 1 ? "female" : "male") << std::endl;
 
-	Vk::Client::json jsn_hometown = account["home_town"];
+        Vk::Client::json jsn_hometown = account["home_town"];
         if (!jsn_hometown.is_null())
             std::cout << "home town: " << jsn_hometown.begin().value() << std::endl;
     }
-    catch (const std::exception & error)
+    catch (const std::exception &error)
     {
-	std::cout << error.what() << std::endl;
+        std::cout << error.what() << std::endl;
     }
 }
 
-void get_audios(const Vk::Client::json & audios, size_t index, bool offset)
+auto print_audios(const Vk::Client::json & audios, size_t threads_count, bool is_debug, size_t current_index) -> void
 {
-    auto counter = 0;
-
-    for (Vk::Client::json::const_iterator it = audios.begin(); it != audios.end(); ++it)
+    for (auto i = current_index; i < audios.size(); i += threads_count)
     {
-	//std::lock_guard<std::mutex> lock(mutex);
-	std::cout << "Thread " << index + 1 << std::endl;
-	std::cout << counter + 1 << std::endl;
+        while (thread_index != current_index)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-	if (it.value().find("artist") != it.value().end())
-	{
-            Vk::Client::json jsn_artist = it.value()["artist"];
-            if (!jsn_artist.is_null())
-                std::cout << "Artist: " << jsn_artist.begin().value() << std::endl;
-	}
+        std::lock_guard<std::mutex> lock(mutex);
 
-	if (it.value().find("title") != it.value().end())
-	{
-            Vk::Client::json jsn_title = it.value()["title"];
-            if (!jsn_title.is_null())
-                std::cout << "Title: " << jsn_title.begin().value() << std::endl;
-	}
+        if (is_debug)
+        {
+            std::time_t timer = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            std::cout << "Thread " << current_index + 1 << std::endl << "Start time: " << ctime(&timer);
+        }
 
-	if (it.value().find("duration") != it.value().end())
-	{
-	    Vk::Client::json jsn_duration = it.value()["duration"];
-            if (!jsn_duration.is_null())
-                std::cout << "Duration: " << jsn_duration.begin().value() << std::endl << std::endl;
-	}
-	counter++;
-	//std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
+        std::cout << i + 1 << ". ";
+        auto value = audios.at(i);
+
+        Vk::Client::json jsn_artist = value["artist"];
+        if (!jsn_artist.is_null())
+            std::cout << "Artist: " << jsn_artist.begin().value() << std::endl;
+
+        Vk::Client::json jsn_title = value["title"];
+        if (!jsn_title.is_null())
+            std::cout << "Title: " << jsn_title.begin().value() << std::endl;
+
+        Vk::Client::json jsn_duration = value["duration"];
+        if (!jsn_duration.is_null())
+            std::cout << "Duration: " << jsn_duration.begin().value() << std::endl;
+
+        if (thread_index < threads_count - 1)
+            thread_index++;
+        else
+            thread_index = 0;
+
+        if (is_debug)
+        {
+            std::time_t timer = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            std::cout << "End time: " << ctime(&timer) << std::endl;
+        }
     }
 }
