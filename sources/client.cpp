@@ -35,7 +35,7 @@ namespace Vk
 		}
 		catch (const std::exception & error)
 		{
-		    std::cout << error.what() << std::endl;
+		    std::cerr << error.what() << std::endl;
 		} 
             }
         }
@@ -74,7 +74,7 @@ namespace Vk
 		}
 		catch (const std::exception & error)
 		{
-		    std::cout << error.what() << std::endl;
+		    std::cerr << error.what() << std::endl;
 		} 
             }			
 	}
@@ -113,7 +113,7 @@ auto Client::get_audios() -> json
                 }
                 catch (const std::exception & error)
                 {
-                    std::cout << error.what() << std::endl;
+                    std::cerr << error.what() << std::endl;
                 }
             }
         }

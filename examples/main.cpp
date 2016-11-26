@@ -70,7 +70,7 @@ void get_info(const Vk::Client::json & account)
     }
     catch (const std::exception &error)
     {
-        std::cout << error.what() << std::endl;
+        std::cerr << error.what() << std::endl;
     }
 }
 
